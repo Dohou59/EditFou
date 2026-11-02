@@ -10,7 +10,7 @@
   clips/<id>/          storyboard.json, plans.json, montage.fcproj, <slug>-<id>.mp4, apercu.jpg
   journal.txt          sortie des tâches lancées par l'interface
 """
-import datetime, json, os, re, unicodedata
+import datetime, json, os, re, time, unicodedata
 
 from .config import C
 
@@ -33,8 +33,9 @@ class Projet:
     @classmethod
     def creer(cls, source, nom=None):
         local = os.path.isfile(source)
+        yt = re.search(r'(?:youtu\.be/|v=|shorts/)([\w-]{11})', source)
         base = slugifier(nom or (os.path.splitext(os.path.basename(source))[0] if local else
-                                 re.sub(r'^https?://(www\.)?', '', source)))
+                                 'youtube-' + yt.group(1) if yt else re.sub(r'^https?://(www\.)?', '', source)))
         slug, n = base, 2
         while os.path.exists(os.path.join(C['projets'], slug)):
             slug, n = '%s-%d' % (base, n), n + 1
@@ -62,17 +63,29 @@ class Projet:
 
     def lire(self, nom, defaut=None):
         f = self.chemin(nom)
-        if not os.path.isfile(f):
-            return defaut
-        with open(f, encoding='utf-8') as fh:
-            return json.load(fh)
+        for essai in range(20):
+            if not os.path.isfile(f):
+                return defaut
+            try:
+                with open(f, encoding='utf-8') as fh:
+                    return json.load(fh)
+            except (PermissionError, ValueError):     # fichier en cours de remplacement par une autre tâche
+                time.sleep(0.05)
+        return defaut
 
     def ecrire(self, nom, data):
         f = self.chemin(nom)
         os.makedirs(os.path.dirname(f), exist_ok=True)
-        tmp = f + '.tmp'
+        tmp = '%s.%d.tmp' % (f, os.getpid())
         with open(tmp, 'w', encoding='utf-8') as fh:
             json.dump(data, fh, ensure_ascii=False, indent=1)
+        # Windows refuse de remplacer un fichier qu'un autre processus lit (l'interface) : on réessaie
+        for essai in range(40):
+            try:
+                os.replace(tmp, f)
+                return
+            except PermissionError:
+                time.sleep(0.05)
         os.replace(tmp, f)
 
     def info(self):

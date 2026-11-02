@@ -21,8 +21,11 @@ def telecharger(p):
         return sortie
     import yt_dlp
 
+    dernier = [0.0]
+
     def progres(d):
-        if d.get('status') == 'downloading':
+        if d.get('status') == 'downloading' and time.time() - dernier[0] > 1.0:
+            dernier[0] = time.time()
             tot = d.get('total_bytes') or d.get('total_bytes_estimate') or 1
             p.etat('telechargement', 'en_cours', 'Téléchargement…', round(100 * d.get('downloaded_bytes', 0) / tot))
 
