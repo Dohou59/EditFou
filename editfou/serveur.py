@@ -91,6 +91,17 @@ def creer(n: Nouveau):
     return _resume(p)
 
 
+@app.post('/api/projets/{slug}/analyser')
+def reprendre(slug: str):
+    """Relance l'analyse : les étapes faites sont sautées, le téléchargement reprend où il s'était arrêté."""
+    p = _p(slug)
+    i = p.info()
+    if i.get('telechargement'):
+        p.maj_info(telechargement={k: v for k, v in i['telechargement'].items() if k != 'erreur'})
+    _lancer(p, 'analyser', slug)
+    return {'ok': True}
+
+
 @app.get('/api/projets/{slug}')
 def projet(slug: str):
     p = _p(slug)

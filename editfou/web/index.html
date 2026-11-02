@@ -176,8 +176,11 @@ function lecteur(p, c) {
 
 function telechargement(p) {
   const t = p.info.telechargement; if (!t || p.info.video) return '';
-  return `<div class="bandeau en_cours"><b>Téléchargement</b> — ${esc(t.quoi)} : ${t.pourcent} %
+  const arret = t.erreur && !t.erreur.includes('nouvel essai') && !p.occupe;
+  return `<div class="bandeau ${arret ? 'erreur' : 'en_cours'}"><b>Téléchargement</b> — ${esc(t.quoi)} : ${t.pourcent} %
+    ${t.erreur ? `· ${esc(t.erreur)}` : ''}
     <div class="barre"><div style="width:${t.pourcent}%"></div></div>
+    ${arret ? `<div class="actions"><button class="primaire" onclick="reprendre('${p.slug}')">Reprendre le téléchargement</button></div>` : ''}
     <div class="doux petit" style="margin-top:6px">Tu peux déjà valider les clips ; le montage attend la vidéo.</div></div>`;
 }
 
@@ -288,6 +291,7 @@ const bornes = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}`, {metho
   body: {debut: +$('#d-' + c).value, fin: +$('#f-' + c).value}}));
 const proposer = s => action(() => api(`/api/projets/${s}/proposer`, {method: 'POST'}));
 const sbAuto = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}/storyboard/auto`, {method: 'POST'}));
+const reprendre = s => action(() => api(`/api/projets/${s}/analyser`, {method: 'POST'}));
 const monter = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}/monter`, {method: 'POST'}));
 async function sbEcrire(s, c, modif) {
   const sb = JSON.parse($('#json-' + c).value); modif(sb);

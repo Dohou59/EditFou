@@ -274,7 +274,21 @@ def analyser(p, modele=None, langue=None):
     if not info.get('local'):
         print('téléchargement de la vidéo (H.264 ≤ 1080p)…')
         telecharger_audio(p)
-        telecharger_video(p)
+        # la vidéo se télécharge pendant qu'on valide : une coupure réseau ne doit pas faire perdre l'étape en cours,
+        # et yt-dlp reprend le fichier .part là où il s'était arrêté
+        for essai in range(1, 21):
+            try:
+                telecharger_video(p)
+                break
+            except Exception as e:
+                msg = str(e).replace('\r', '').replace('ERROR: ', '')[:300]
+                print('vidéo, essai %d raté : %s' % (essai, msg))
+                p.maj_info(telechargement=dict(p.info().get('telechargement') or {'quoi': 'vidéo', 'pourcent': 0},
+                                               erreur='coupure réseau, nouvel essai (%d/20)…' % essai))
+                if essai == 20:
+                    p.maj_info(telechargement=dict(p.info()['telechargement'], erreur=msg))
+                    raise
+                time.sleep(min(30 * essai, 300))
     print('Analyse terminée : %s' % p.chemin('phrases.txt'))
 
 

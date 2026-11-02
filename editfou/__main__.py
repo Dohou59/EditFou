@@ -77,7 +77,8 @@ def main(argv=None):
         try:
             analyser(p, a.modele, a.langue)
         except Exception as e:
-            p.etat(p.etat().get('etape', 'telechargement'), 'erreur', str(e)[:500])
+            if not os.path.isfile(p.chemin('phrases.txt')):  # après : seule la vidéo manque, l'erreur est dans info.json
+                p.etat(p.etat().get('etape', 'telechargement'), 'erreur', str(e)[:500])
             raise
         print('Transcription prête : %s' % p.chemin('phrases.txt'))
     elif c == 'phrases':
