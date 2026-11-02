@@ -1,0 +1,9 @@
+# EditFou — Python 3.11+ ; ffmpeg et FilmCraft s'installent à part (voir README)
+numpy>=1.26
+opencv-python>=4.8
+faster-whisper>=1.0
+yt-dlp>=2024.8.6
+Pillow>=10
+fonttools>=4.50
+fastapi>=0.110
+uvicorn>=0.29

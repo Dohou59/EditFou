@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EditFou</title>
+<style>
+@font-face { font-family: 'Inter EF'; src: url('/polices/Inter_24pt-Black.ttf'); font-weight: 900; }
+@font-face { font-family: 'Bebas EF'; src: url('/polices/BebasNeue-Regular.ttf'); }
+@font-face { font-family: 'Playfair EF'; src: url('/polices/PlayfairDisplay-Italic.ttf'); font-style: italic; }
+:root {
+  --fond: #0B0B0B; --carte: #151515; --carte2: #1C1C1C; --ligne: #2A2A2A; --texte: #F2F2F2; --doux: #9A9A9A;
+  --rouge: #E0202A; --vert: #2EB872; --jaune: #E8B931;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--texte); font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background-image: linear-gradient(#141414 1px, transparent 1px), linear-gradient(90deg, #141414 1px, transparent 1px);
+  background-size: 90px 90px; min-height: 100vh; }
+a { color: inherit; }
+header { display: flex; align-items: center; gap: 14px; padding: 18px 28px; border-bottom: 1px solid var(--ligne);
+  background: rgba(11,11,11,.92); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(6px); }
+.logo { font-family: 'Bebas EF', Impact, sans-serif; font-size: 34px; letter-spacing: 1px; text-decoration: none; }
+.logo span { color: var(--rouge); }
+.slogan { font-family: 'Playfair EF', Georgia, serif; font-style: italic; color: var(--doux); }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { font-family: 'Inter EF', system-ui, sans-serif; font-weight: 900; letter-spacing: -.01em; margin: 0 0 12px; }
+h1 { font-size: 30px; } h2 { font-size: 21px; margin-top: 34px; } h3 { font-size: 16px; }
+.carte { background: var(--carte); border: 1px solid var(--ligne); border-radius: 14px; padding: 18px; }
+.nouveau { display: flex; gap: 10px; flex-wrap: wrap; }
+input, textarea, select { background: var(--carte2); color: var(--texte); border: 1px solid var(--ligne); border-radius: 10px;
+  padding: 11px 13px; font: inherit; }
+input:focus, textarea:focus { outline: 2px solid var(--rouge); outline-offset: -1px; }
+.nouveau input[name=source] { flex: 1 1 380px; }
+button { background: var(--carte2); color: var(--texte); border: 1px solid var(--ligne); border-radius: 10px; padding: 10px 16px;
+  font: 600 14px system-ui, sans-serif; cursor: pointer; }
+button:hover { border-color: #555; }
+button.primaire { background: var(--rouge); border-color: var(--rouge); color: #fff; }
+button.primaire:hover { filter: brightness(1.1); }
+button:disabled { opacity: .45; cursor: default; }
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.projet { cursor: pointer; transition: border-color .15s; }
+.projet:hover { border-color: #555; }
+.doux { color: var(--doux); overflow-wrap: anywhere; }
+.petit { font-size: 13px; }
+.pastille { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--carte2);
+  border: 1px solid var(--ligne); }
+.p-valide, .p-fait { color: var(--vert); border-color: #1f5f40; }
+.p-rejete, .p-erreur { color: #ff6b6b; border-color: #6b2323; }
+.p-en_cours { color: var(--jaune); border-color: #6b5a1f; }
+.p-attente_ia { color: #8fb8ff; border-color: #24426e; }
+.etapes { display: flex; gap: 8px; margin: 18px 0; flex-wrap: wrap; }
+.etape { flex: 1 1 150px; padding: 10px 14px; border-radius: 10px; background: var(--carte); border: 1px solid var(--ligne);
+  font-weight: 700; font-size: 13px; color: var(--doux); }
+.etape b { font-family: 'Bebas EF', Impact, sans-serif; font-size: 22px; font-weight: 400; margin-right: 6px; color: var(--texte); }
+.etape.active { border-color: var(--rouge); color: var(--texte); }
+.etape.finie { color: var(--vert); }
+.bandeau { margin: 14px 0; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--ligne); background: var(--carte); }
+.bandeau.attente_ia { border-color: #24426e; background: #0f1826; }
+.bandeau.erreur { border-color: #6b2323; background: #1f0f0f; }
+.bandeau.en_cours { border-color: #6b5a1f; }
+.barre { height: 6px; background: var(--carte2); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.barre div { height: 100%; background: var(--rouge); transition: width .4s; }
+.consigne { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.consigne code { flex: 1 1 300px; overflow-wrap: anywhere; background: #0b0b0b; border: 1px dashed #335; padding: 9px 12px; border-radius: 8px;
+  font: 13px ui-monospace, Consolas, monospace; color: #cfe0ff; }
+.clip { display: grid; grid-template-columns: 300px 1fr; gap: 18px; margin-bottom: 16px; }
+.clip.rejete { opacity: .45; }
+.clip video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 16/9; }
+.clip .titre { font-family: 'Inter EF', system-ui; font-weight: 900; font-size: 19px; margin: 2px 0 6px; }
+.accroche { font-family: 'Playfair EF', Georgia, serif; font-style: italic; color: #d8d8d8; margin: 6px 0; }
+.score { font-family: 'Bebas EF', Impact; font-size: 26px; color: var(--rouge); float: right; line-height: 1; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+.temps input { width: 92px; padding: 6px 8px; }
+.sb { margin-top: 14px; border-top: 1px solid var(--ligne); padding-top: 14px; }
+.ligne-temps { display: grid; gap: 6px; margin: 8px 0; }
+.evt { display: grid; grid-template-columns: 112px 120px 1fr; gap: 10px; padding: 7px 10px; background: var(--carte2); border-radius: 8px;
+  font-size: 13px; align-items: baseline; }
+.evt .t { font: 12px ui-monospace, Consolas, monospace; color: var(--doux); }
+.evt .type { font-weight: 800; color: var(--rouge); }
+.evt.sur .type { color: #8fb8ff; }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.puce { background: #2a0b0d; color: #ff8a90; border: 1px solid #5a1a1e; border-radius: 99px; padding: 1px 9px; font-size: 12px; font-weight: 700; }
+.problemes { color: #ffb4b4; font-size: 13px; margin: 6px 0; padding-left: 18px; }
+textarea.json { width: 100%; min-height: 280px; font: 12.5px/1.4 ui-monospace, Consolas, monospace; }
+.rendu { display: flex; gap: 18px; align-items: flex-start; margin-top: 12px; flex-wrap: wrap; }
+.rendu video { width: 270px; aspect-ratio: 9/16; border-radius: 12px; background: #000; }
+pre.journal { background: #080808; border: 1px solid var(--ligne); border-radius: 10px; padding: 12px; max-height: 260px; overflow: auto;
+  font-size: 12px; color: #bbb; white-space: pre-wrap; }
+details summary { cursor: pointer; color: var(--doux); }
+.vide { text-align: center; padding: 40px; color: var(--doux); }
+@media (max-width: 760px) { main { padding: 16px; } .clip { grid-template-columns: 1fr; } header { padding: 14px 16px; }
+  .slogan { display: none; } .evt { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#/">EDIT<span>FOU</span></a>
+  <span class="slogan">du lien YouTube au clip monté</span>
+</header>
+<main id="app"></main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const mmss = t => { t = +t || 0; const m = Math.floor(t / 60), s = (t % 60).toFixed(1).padStart(4, '0'); return `${m}:${s}`; };
+const ETAT = {cree: 'Créé', telechargement: 'Téléchargement', transcription: 'Transcription', clips: 'Clips',
+  storyboards: 'Storyboards', montage: 'Montage'};
+const STATUT = {en_cours: 'en cours', fait: 'fait', erreur: 'erreur', attente_ia: 'attend l’IA', propose: 'proposé',
+  valide: 'validé', rejete: 'écarté', brouillon: 'brouillon'};
+let minuterie = null, ouverts = new Set(), cfg = {ia: ''};
+
+async function api(url, opts = {}) {
+  const r = await fetch(url, {headers: {'content-type': 'application/json'}, ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.detail || r.statusText);
+  return d;
+}
+function copier(btn, texte) {
+  navigator.clipboard.writeText(texte).then(() => { btn.textContent = 'Copié'; setTimeout(() => btn.textContent = 'Copier', 1200); });
+}
+function pastille(st) { return `<span class="pastille p-${esc(st)}">${esc(STATUT[st] || st)}</span>`; }
+
+// ------------------------------------------------------------------ accueil
+async function accueil() {
+  const projets = await api('/api/projets');
+  $('#app').innerHTML = `
+    <h1>Nouveau clip</h1>
+    <form class="carte nouveau" id="nouveau">
+      <input name="source" placeholder="Lien YouTube ou chemin d’une vidéo sur ce PC" required>
+      <input name="nom" placeholder="Nom (facultatif)" style="flex:0 1 220px">
+      <button class="primaire">Analyser</button>
+    </form>
+    <p class="doux petit">EditFou télécharge la vidéo, la transcrit mot à mot, puis l’IA propose les meilleurs moments.
+      Tu valides les clips, puis le storyboard de chacun, et le montage se fait tout seul dans FilmCraft.</p>
+    <h2>Projets</h2>
+    <div class="grille">${projets.map(p => `
+      <div class="carte projet" data-slug="${esc(p.slug)}">
+        <h3>${esc(p.info.titre || p.slug)}</h3>
+        <div class="doux petit">${esc(p.slug)} · ${p.info.duree ? mmss(p.info.duree) : '—'}</div>
+        <div style="margin-top:10px">${esc(ETAT[p.etat.etape] || '')} ${pastille(p.etat.statut)}</div>
+        <div class="doux petit" style="margin-top:6px">${p.clips.total} clips · ${p.clips.valides} validés · ${p.clips.montes} montés</div>
+      </div>`).join('') || '<div class="vide">Aucun projet pour l’instant.</div>'}</div>`;
+  $('#nouveau').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target), b = $('button', e.target);
+    b.disabled = true;
+    try { const p = await api('/api/projets', {method: 'POST', body: {source: f.get('source'), nom: f.get('nom')}});
+      location.hash = '#/p/' + p.slug; }
+    catch (err) { alert(err.message); b.disabled = false; }
+  };
+  document.querySelectorAll('.projet').forEach(c => c.onclick = () => location.hash = '#/p/' + c.dataset.slug);
+}
+
+// ------------------------------------------------------------------ projet
+function etapes(p) {
+  const c = p.clips_detail, val = c.filter(x => x.statut === 'valide');
+  const sbOk = val.length && val.every(x => x.storyboard?.statut === 'valide');
+  const done = [!!p.info.duree && ['clips', 'storyboards', 'montage'].includes(p.etat.etape) || c.length > 0,
+    val.length > 0, sbOk, val.length > 0 && val.every(x => x.rendu)];
+  const noms = ['Analyse', 'Clips', 'Storyboards', 'Montage'];
+  const active = done.indexOf(false);
+  return `<div class="etapes">${noms.map((n, i) => `<div class="etape ${done[i] ? 'finie' : ''} ${i === active ? 'active' : ''}">
+    <b>${i + 1}</b>${n}${done[i] ? ' ✓' : ''}</div>`).join('')}</div>`;
+}
+
+function bandeau(p) {
+  const e = p.etat; if (!e.statut || e.statut === 'fait' && e.etape !== 'clips') return '';
+  let corps = `<b>${esc(ETAT[e.etape] || e.etape)}</b> — ${esc(e.message)}`;
+  if (e.statut === 'en_cours' && e.progression != null) corps += `<div class="barre"><div style="width:${e.progression}%"></div></div>`;
+  if (e.statut === 'attente_ia' && e.etape === 'clips' && !p.clips_detail.length) {
+    const c = `Propose les clips du projet EditFou « ${p.slug} »`;
+    corps += `<div class="consigne"><code>${esc(c)}</code><button onclick="copier(this, ${esc(JSON.stringify(c))})">Copier</button>
+      ${p.ia ? `<button class="primaire" onclick="proposer('${p.slug}')">Proposer avec ${esc(p.ia)}</button>` : ''}</div>
+      <div class="doux petit" style="margin-top:6px">Dis-le à ton agent (Claude Code ouvert dans le dossier EditFou) : il lit la
+      transcription, choisit les moments et les enregistre. Cette page se met à jour toute seule.</div>`;
+  }
+  return `<div class="bandeau ${esc(e.statut)}">${corps}</div>`;
+}
+
+function evenements(sb) {
+  const ev = [];
+  (sb.teaser || []).forEach(([a, b]) => ev.push([a, b, 'teaser', 'N&B en ouverture', '']));
+  (sb.grave || []).forEach(([a, b]) => ev.push([a, b, 'grave', 'N&B, musique coupée', '']));
+  (sb.exclure || []).forEach(([a, b]) => ev.push([a, b, 'coupé', 'retiré du montage', '']));
+  (sb.inserts || []).forEach(x => ev.push([x.debut, x.fin, x.type, [x.phrase, x.texte, x.valeur, x.avant && `${x.avant} → ${x.apres}`, x.numero]
+    .filter(Boolean).join(' · '), '']));
+  (sb.surimpressions || []).forEach(x => ev.push([x.debut, x.fin, x.type, x.texte || x.mot || `${x.avant || ''} → ${x.apres || ''}`, 'sur']));
+  return ev.sort((a, b) => a[0] - b[0]).map(([a, b, t, d, k]) => `<div class="evt ${k}"><span class="t">${mmss(a)} → ${mmss(b)}</span>
+    <span class="type">${esc(t)}</span><span>${esc(d)}</span></div>`).join('');
+}
+
+async function panneauStoryboard(p, c) {
+  const el = $(`#sb-${c.id}`);
+  if (!c.storyboard) {
+    const cons = `Écris le storyboard du clip ${c.id} du projet EditFou « ${p.slug} »`;
+    el.innerHTML = `<h3>Storyboard</h3><div class="bandeau attente_ia">En attente de l’IA.
+      <div class="consigne"><code>${esc(cons)}</code><button onclick="copier(this, ${esc(JSON.stringify(cons))})">Copier</button>
+      <button onclick="sbAuto('${p.slug}','${c.id}')">${p.ia ? 'Écrire avec ' + esc(p.ia) : 'Brouillon automatique'}</button></div></div>`;
+    return;
+  }
+  const d = await api(`/api/projets/${p.slug}/clips/${c.id}/storyboard`), sb = d.storyboard;
+  const ok = sb.statut === 'valide';
+  el.innerHTML = `<h3>Storyboard ${pastille(sb.statut)} <span class="doux petit">${esc(sb.auteur || '')}</span></h3>
+    <div class="puces">${(sb.mots_cles || []).map(m => `<span class="puce">${esc(m)}</span>`).join('')}</div>
+    <div class="ligne-temps">${evenements(sb) || '<span class="doux">Aucun insert : texte mot par mot seul.</span>'}</div>
+    ${d.problemes.length ? `<ul class="problemes">${d.problemes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <details><summary>Modifier le storyboard (JSON)</summary>
+      <textarea class="json" id="json-${c.id}">${esc(JSON.stringify(sb, null, 1))}</textarea>
+      <div class="actions"><button onclick="sbEnregistrer('${p.slug}','${c.id}')">Enregistrer</button></div></details>
+    <div class="actions">
+      ${ok ? '' : `<button class="primaire" ${d.problemes.length ? 'disabled' : ''} onclick="sbValider('${p.slug}','${c.id}')">Valider le storyboard</button>`}
+      ${ok ? `<button class="primaire" ${p.occupe ? 'disabled' : ''} onclick="monter('${p.slug}','${c.id}')">${c.rendu ? 'Remonter' : 'Lancer le montage'}</button>` : ''}
+      ${ok ? `<button onclick="sbRouvrir('${p.slug}','${c.id}')">Repasser en brouillon</button>` : ''}
+    </div>
+    ${c.rendu ? `<div class="rendu"><video controls preload="metadata" src="/api/projets/${p.slug}/clips/${c.id}/rendu?v=${Date.now()}"></video>
+      <div><h3>Clip monté</h3><p class="doux petit">Projet FilmCraft modifiable :<br><code>${esc(c.projet_filmcraft)}</code></p>
+      <a href="/api/projets/${p.slug}/clips/${c.id}/rendu" download><button>Télécharger le MP4</button></a></div></div>` : ''}`;
+}
+
+async function vueProjet(slug, garder) {
+  const p = await api('/api/projets/' + slug);
+  const ancien = $('#journal')?.open;
+  const html = `
+    <h1>${esc(p.info.titre || p.slug)}</h1>
+    <div class="doux petit">${esc(p.info.source)} ${p.info.duree ? '· ' + mmss(p.info.duree) : ''}</div>
+    ${etapes(p)}${bandeau(p)}
+    <h2>Clips proposés</h2>
+    ${p.clips_detail.map(c => `
+      <div class="carte clip ${c.statut}" id="clip-${c.id}">
+        <div><video preload="metadata" controls src="/api/projets/${slug}/video#t=${c.debut},${c.fin}" data-fin="${c.fin}"></video></div>
+        <div>
+          <span class="score">${esc(c.score ?? '')}</span>
+          <div class="doux petit">${c.id} · ${mmss(c.debut)} → ${mmss(c.fin)} · ${(c.fin - c.debut).toFixed(0)} s ${pastille(c.statut)}</div>
+          <div class="titre">${esc(c.titre)}</div>
+          <div class="accroche">« ${esc(c.accroche)} »</div>
+          <div class="doux petit">${esc(c.raison)}</div>
+          <div class="actions">
+            <button class="${c.statut === 'valide' ? 'primaire' : ''}" onclick="statut('${slug}','${c.id}','valide')">Garder</button>
+            <button onclick="statut('${slug}','${c.id}','rejete')">Écarter</button>
+            <span class="temps doux petit">début <input type="number" step="0.01" value="${c.debut}" id="d-${c.id}">
+              fin <input type="number" step="0.01" value="${c.fin}" id="f-${c.id}">
+              <button onclick="bornes('${slug}','${c.id}')">Appliquer</button></span>
+          </div>
+          ${c.statut === 'valide' ? `<div class="sb" id="sb-${c.id}"></div>` : ''}
+        </div>
+      </div>`).join('') || '<div class="vide">Les clips apparaîtront ici dès que l’IA les aura proposés.</div>'}
+    <details id="journal" ${ancien ? 'open' : ''}><summary>Journal des tâches</summary><pre class="journal" id="journal-txt"></pre></details>`;
+  const lecture = [...document.querySelectorAll('video')].some(v => !v.paused);
+  const focus = document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName);
+  if (!(garder && (lecture || focus))) {
+    $('#app').innerHTML = html;
+    document.querySelectorAll('.clip video').forEach(v => v.ontimeupdate = () => { if (v.currentTime >= +v.dataset.fin) v.pause(); });
+    for (const c of p.clips_detail.filter(c => c.statut === 'valide')) await panneauStoryboard(p, c);
+  }
+  if ($('#journal')?.open) $('#journal-txt').textContent = (await api(`/api/projets/${slug}/journal`)).texte;
+  clearTimeout(minuterie);
+  const actif = p.occupe || ['en_cours'].includes(p.etat.statut) || p.etat.statut === 'attente_ia';
+  minuterie = setTimeout(() => location.hash === '#/p/' + slug && vueProjet(slug, true), actif ? 2500 : 8000);
+}
+
+const rafraichir = () => vueProjet(location.hash.slice(4));
+async function action(f) { try { await f(); } catch (e) { alert(e.message); } rafraichir(); }
+const statut = (s, c, st) => action(() => api(`/api/projets/${s}/clips/${c}`, {method: 'POST', body: {statut: st}}));
+const bornes = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}`, {method: 'POST',
+  body: {debut: +$('#d-' + c).value, fin: +$('#f-' + c).value}}));
+const proposer = s => action(() => api(`/api/projets/${s}/proposer`, {method: 'POST'}));
+const sbAuto = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}/storyboard/auto`, {method: 'POST'}));
+const monter = (s, c) => action(() => api(`/api/projets/${s}/clips/${c}/monter`, {method: 'POST'}));
+async function sbEcrire(s, c, modif) {
+  const sb = JSON.parse($('#json-' + c).value); modif(sb);
+  return api(`/api/projets/${s}/clips/${c}/storyboard`, {method: 'POST', body: {storyboard: sb}});
+}
+const sbEnregistrer = (s, c) => action(() => sbEcrire(s, c, () => {}));
+const sbValider = (s, c) => action(() => sbEcrire(s, c, sb => sb.statut = 'valide'));
+const sbRouvrir = (s, c) => action(() => sbEcrire(s, c, sb => sb.statut = 'brouillon'));
+
+function route() {
+  clearTimeout(minuterie);
+  const h = location.hash;
+  if (h.startsWith('#/p/')) vueProjet(h.slice(4)).catch(e => $('#app').innerHTML = `<div class="vide">${esc(e.message)}</div>`);
+  else accueil();
+}
+addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>

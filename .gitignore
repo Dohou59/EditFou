@@ -1,0 +1,23 @@
+# données de travail (vidéos, transcriptions, montages)
+projets/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.m4a
+*.fcproj
+*.fcproj.*
+
+# réglages et secrets locaux
+editfou.local.json
+.env
+.env.*
+sons/
+
+__pycache__/
+*.pyc
+.venv/
+.idea/
+.vscode/

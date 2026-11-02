@@ -1,0 +1,24 @@
+{
+  "filmcraft": "C:/Programmes/filmcraft-0.16.0-windows-x64-portable",
+  "langue": "fr",
+  "modele_whisper": "small",
+  "sons": {
+    "musique": "D:/Sons/musique_suspense.wav",
+    "braam": "D:/Sons/braam.wav",
+    "whoosh": "D:/Sons/whoosh.mp3",
+    "whoosh_bas": "D:/Sons/whoosh_bas.mp3",
+    "woosh": "D:/Sons/woosh_court.mp3",
+    "swoosh": "D:/Sons/swoosh.mp3",
+    "punch": "D:/Sons/punch.wav",
+    "hit": "D:/Sons/hit.wav",
+    "boom": "D:/Sons/boom.mp3",
+    "pop": "D:/Sons/pop.wav",
+    "clic": "D:/Sons/clic.wav",
+    "declencheur": "D:/Sons/declencheur.mp3",
+    "ding": "D:/Sons/ding.mp3",
+    "tictac": "D:/Sons/tictac.mp3",
+    "riser": "D:/Sons/riser.mp3",
+    "verre": "D:/Sons/verre.mp3"
+  },
+  "ia": {"fournisseur": "", "modele": ""}
+}
