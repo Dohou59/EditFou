@@ -4,7 +4,9 @@
   etat.json            étape en cours / terminée, message, pour l'interface
   source.mp4           vidéo téléchargée (absent pour un fichier local : on lit l'original)
   voix16k.wav          voix mono 16 kHz
-  mots.json            transcription mot à mot [{mot, debut, fin, proba}] (temps de la source, s)
+  mots_approx.json     mots des sous-titres YouTube, minutage approximatif (pour choisir les clips)
+  mots.json            transcription Whisper mot à mot [{mot, debut, fin, proba}] (temps de la source, s),
+                       complète (fichier local) ou seulement sur les passages des clips (mots_plages.json)
   phrases.txt          la même en phrases horodatées : ce que l'IA lit pour choisir les clips
   clips.json           {"clips": [{id, debut, fin, titre, accroche, raison, score, statut}]}
   clips/<id>/          storyboard.json, plans.json, montage.fcproj, <slug>-<id>.mp4, apercu.jpg
@@ -101,7 +103,13 @@ class Projet:
         return v
 
     def mots(self, debut=None, fin=None):
+        """Mots Whisper là où ils existent, sous-titres YouTube approximatifs ailleurs."""
         m = self.lire('mots.json', [])
+        approx = self.lire('mots_approx.json')
+        if approx:
+            plages = self.lire('mots_plages.json', [])
+            m = sorted(m + [w for w in approx if not any(a <= w['debut'] < b for a, b in plages)],
+                       key=lambda w: w['debut'])
         if debut is not None:
             m = [w for w in m if w['debut'] >= debut - 0.01 and w['fin'] <= fin + 0.3]
         return m

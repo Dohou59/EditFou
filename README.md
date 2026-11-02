@@ -53,7 +53,9 @@ bibliothèque (`python -m editfou sons` liste les rôles et mesure le pic de cha
 python -m editfou serveur          # interface : http://localhost:5100
 ```
 
-1. Colle un lien YouTube → **Analyser** (téléchargement + transcription, ≈ 1 min par minute de vidéo).
+1. Colle un lien YouTube → **Analyser** : les sous-titres YouTube arrivent en quelques secondes, l'IA peut déjà
+   choisir les clips pendant que la vidéo se télécharge. Whisper ne transcrit ensuite que les clips gardés.
+   (Fichier de ton PC : transcription Whisper complète, ≈ 1 min par minute de vidéo.)
 2. Demande à ton agent de proposer les clips → **Garder** / **Écarter** (début et fin ajustables).
 3. Demande-lui le storyboard de chaque clip gardé → relis la ligne de temps → **Valider le storyboard**.
 4. **Lancer le montage** → le MP4 apparaît dans la page, le projet FilmCraft est à côté.

@@ -27,6 +27,8 @@ L'interface se rafraîchit seule : quand tu écris un fichier, l'utilisateur le 
 `python -m editfou consignes-clips <p>` imprime les consignes complètes avec la transcription : suis-les.
 L'essentiel : 5 à 8 moments autonomes de 30 à 90 s, une première phrase qui accroche, une idée complète avec une
 chute nette, pas de chevauchement. Les temps sont ceux de `phrases.txt` (secondes de la vidéo source).
+Pour un lien YouTube, `phrases.txt` vient des sous-titres YouTube (minutage approximatif, souvent sans ponctuation) :
+il est prêt en quelques secondes, la vidéo se télécharge ensuite. Le minutage précis viendra à l'étape 4.
 
 ```json
 {"clips": [{"debut": 312.40, "fin": 381.90, "titre": "Tu perds deux fois",
@@ -38,7 +40,8 @@ EditFou cale chaque clip sur les mots et le numérote (`c01`, `c02`…). Ensuite
 
 ## Étape 4 — écrire un storyboard
 
-1. `python -m editfou mots <p> <clip>` : chaque mot avec son début et sa fin (« (?) » = mot douteux).
+1. `python -m editfou mots <p> <clip>` : chaque mot avec son début et sa fin (« (?) » = mot douteux). La première
+   fois, EditFou transcrit le passage mot à mot avec Whisper (≈ 1 min par minute de clip).
 2. `python -m editfou gabarits` : les motions disponibles, leurs paramètres et déclencheurs.
 3. Lis la recette de style : `.claude/skills/editfou/references/recette.md` et le format complet avec un exemple
    validé : `.claude/skills/editfou/references/storyboard.md`.

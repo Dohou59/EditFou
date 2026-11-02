@@ -20,7 +20,7 @@ des blancs. Format complet et exemple : .claude/skills/editfou/references/storyb
 import re
 
 from . import ia
-from .analyse import hms
+from .analyse import assurer_mots, hms
 from .gabarits import INSERTS, SURIMPRESSIONS, doc
 
 NOMBRES = {'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10,
@@ -101,6 +101,7 @@ def verifier(sb, p):
 def brouillon_auto(p, c):
     """Storyboard minimal sans IA : coupe des blancs, texte mot par mot, un compteur par chiffre prononcé.
     Pas de teaser ni de moment grave : c'est le travail de l'IA (ou de l'utilisateur)."""
+    assurer_mots(p, c['debut'], c['fin'])
     mots = p.mots(c['debut'], c['fin'])
     inserts, cles = [], []
     for w in mots:
@@ -122,6 +123,7 @@ def brouillon_auto(p, c):
 def mots_horodates(p, c):
     """Les mots du clip, un par ligne, pour l'IA : « début fin mot »."""
     lignes = []
+    assurer_mots(p, c['debut'], c['fin'])
     mots = p.mots(c['debut'], c['fin'])
     for w, s in zip(mots, mots[1:] + [None]):
         lignes.append('%.2f %.2f %s%s' % (w['debut'], w['fin'], w['mot'], '  (?)' if w.get('proba', 1) < 0.6 else ''))

@@ -65,7 +65,7 @@ button:disabled { opacity: .45; cursor: default; }
   font: 13px ui-monospace, Consolas, monospace; color: #cfe0ff; }
 .clip { display: grid; grid-template-columns: 300px 1fr; gap: 18px; margin-bottom: 16px; }
 .clip.rejete { opacity: .45; }
-.clip video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 16/9; }
+.clip video, .clip .yt { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 16/9; border: 0; }
 .clip .titre { font-family: 'Inter EF', system-ui; font-weight: 900; font-size: 19px; margin: 2px 0 6px; }
 .accroche { font-family: 'Playfair EF', Georgia, serif; font-style: italic; color: #d8d8d8; margin: 6px 0; }
 .score { font-family: 'Bebas EF', Impact; font-size: 26px; color: var(--rouge); float: right; line-height: 1; }
@@ -102,12 +102,13 @@ details summary { cursor: pointer; color: var(--doux); }
 <script>
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-const mmss = t => { t = +t || 0; const m = Math.floor(t / 60), s = (t % 60).toFixed(1).padStart(4, '0'); return `${m}:${s}`; };
+const mmss = t => { t = +t || 0; const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = (t % 60).toFixed(1).padStart(4, '0');
+  return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`; };
 const ETAT = {cree: 'Créé', telechargement: 'Téléchargement', transcription: 'Transcription', clips: 'Clips',
   storyboards: 'Storyboards', montage: 'Montage'};
 const STATUT = {en_cours: 'en cours', fait: 'fait', erreur: 'erreur', attente_ia: 'attend l’IA', propose: 'proposé',
   valide: 'validé', rejete: 'écarté', brouillon: 'brouillon'};
-let minuterie = null, ouverts = new Set(), cfg = {ia: ''};
+let minuterie = null, dernierHtml = '', ouverts = new Set(), cfg = {ia: ''};
 
 async function api(url, opts = {}) {
   const r = await fetch(url, {headers: {'content-type': 'application/json'}, ...opts,
@@ -162,6 +163,22 @@ function etapes(p) {
   const active = done.indexOf(false);
   return `<div class="etapes">${noms.map((n, i) => `<div class="etape ${done[i] ? 'finie' : ''} ${i === active ? 'active' : ''}">
     <b>${i + 1}</b>${n}${done[i] ? ' ✓' : ''}</div>`).join('')}</div>`;
+}
+
+// Pendant le téléchargement de la vidéo, les clips se regardent directement sur YouTube
+function lecteur(p, c) {
+  if (p.info.video) return `<video preload="metadata" controls src="/api/projets/${p.slug}/video#t=${c.debut},${c.fin}" data-fin="${c.fin}"></video>`;
+  const yt = (p.info.source || '').match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);
+  if (!yt) return '<div class="doux petit">Vidéo pas encore prête</div>';
+  return `<iframe class="yt" src="https://www.youtube-nocookie.com/embed/${yt[1]}?start=${Math.floor(c.debut)}&end=${Math.ceil(c.fin)}&rel=0"
+    allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+}
+
+function telechargement(p) {
+  const t = p.info.telechargement; if (!t || p.info.video) return '';
+  return `<div class="bandeau en_cours"><b>Téléchargement</b> — ${esc(t.quoi)} : ${t.pourcent} %
+    <div class="barre"><div style="width:${t.pourcent}%"></div></div>
+    <div class="doux petit" style="margin-top:6px">Tu peux déjà valider les clips ; le montage attend la vidéo.</div></div>`;
 }
 
 function bandeau(p) {
@@ -224,11 +241,11 @@ async function vueProjet(slug, garder) {
   const html = `
     <h1>${esc(p.info.titre || p.slug)}</h1>
     <div class="doux petit">${esc(p.info.source)} ${p.info.duree ? '· ' + mmss(p.info.duree) : ''}</div>
-    ${etapes(p)}${bandeau(p)}
+    ${etapes(p)}${bandeau(p)}<div id="dl"></div>
     <h2>Clips proposés</h2>
     ${p.clips_detail.map(c => `
       <div class="carte clip ${c.statut}" id="clip-${c.id}">
-        <div><video preload="metadata" controls src="/api/projets/${slug}/video#t=${c.debut},${c.fin}" data-fin="${c.fin}"></video></div>
+        <div>${lecteur(p, c)}</div>
         <div>
           <span class="score">${esc(c.score ?? '')}</span>
           <div class="doux petit">${c.id} · ${mmss(c.debut)} → ${mmss(c.fin)} · ${(c.fin - c.debut).toFixed(0)} s ${pastille(c.statut)}</div>
@@ -248,11 +265,16 @@ async function vueProjet(slug, garder) {
     <details id="journal" ${ancien ? 'open' : ''}><summary>Journal des tâches</summary><pre class="journal" id="journal-txt"></pre></details>`;
   const lecture = [...document.querySelectorAll('video')].some(v => !v.paused);
   const focus = document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName);
+  // on ne reconstruit la page que si elle a changé : sinon les lecteurs YouTube se rechargeraient
   if (!(garder && (lecture || focus))) {
-    $('#app').innerHTML = html;
-    document.querySelectorAll('.clip video').forEach(v => v.ontimeupdate = () => { if (v.currentTime >= +v.dataset.fin) v.pause(); });
+    if (html !== dernierHtml) {
+      dernierHtml = html;
+      $('#app').innerHTML = html;
+      document.querySelectorAll('.clip video').forEach(v => v.ontimeupdate = () => { if (v.currentTime >= +v.dataset.fin) v.pause(); });
+    }
     for (const c of p.clips_detail.filter(c => c.statut === 'valide')) await panneauStoryboard(p, c);
   }
+  if ($('#dl')) $('#dl').innerHTML = telechargement(p);
   if ($('#journal')?.open) $('#journal-txt').textContent = (await api(`/api/projets/${slug}/journal`)).texte;
   clearTimeout(minuterie);
   const actif = p.occupe || ['en_cours'].includes(p.etat.statut) || p.etat.statut === 'attente_ia';
@@ -276,7 +298,7 @@ const sbValider = (s, c) => action(() => sbEcrire(s, c, sb => sb.statut = 'valid
 const sbRouvrir = (s, c) => action(() => sbEcrire(s, c, sb => sb.statut = 'brouillon'));
 
 function route() {
-  clearTimeout(minuterie);
+  clearTimeout(minuterie); dernierHtml = '';
   const h = location.hash;
   if (h.startsWith('#/p/')) vueProjet(h.slice(4)).catch(e => $('#app').innerHTML = `<div class="vide">${esc(e.message)}</div>`);
   else accueil();

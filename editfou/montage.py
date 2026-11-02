@@ -11,7 +11,7 @@ Le projet .fcproj reste entièrement modifiable dans FilmCraft.
 import json, os, re, subprocess
 
 from . import filmcraft as fc
-from .analyse import plans
+from .analyse import assurer_mots, plans
 from .cadrage import Cadreur, temps_montage, W, H
 from .decoupe import plages_parlees
 from .filmcraft import cmd, T, F
@@ -37,6 +37,9 @@ def preparer(p, cid, sb):
     a, b = float(sb['debut']), float(sb['fin'])
     exclure = [tuple(x) for x in sb.get('exclure') or []]
     teaser = [tuple(x) for x in sb.get('teaser') or []]
+    assurer_mots(p, a, b)
+    for x, y in teaser:
+        assurer_mots(p, x, y)
     tous = p.mots()
     mots = [w for w in tous if a - 0.01 <= w['debut'] < b and not _dans(w['debut'], exclure)]
     if not mots:

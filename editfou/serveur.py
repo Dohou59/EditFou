@@ -194,6 +194,8 @@ def monter(slug: str, cid: str):
     sb = p.storyboard(cid)
     if not sb or sb.get('statut') != 'valide':
         raise HTTPException(409, 'valide d’abord le storyboard')
+    if not p.info().get('video'):
+        raise HTTPException(409, 'la vidéo se télécharge encore : relance le montage quand elle est prête')
     _lancer(p, 'monter', slug, cid)
     return {'ok': True}
 
