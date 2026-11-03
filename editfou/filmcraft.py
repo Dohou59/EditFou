@@ -28,10 +28,22 @@ def _exe(nom):
     return os.path.join(d, nom)
 
 
+def _connexion(delai):
+    # une connexion par commande : sur un long montage Windows peut manquer de ports locaux (WinError 10048),
+    # le temps que les anciens se libèrent
+    for essai in range(30):
+        try:
+            return socket.create_connection(('127.0.0.1', C['port_filmcraft']), timeout=delai)
+        except OSError as e:
+            if getattr(e, 'winerror', None) != 10048 or essai == 29:
+                raise
+            time.sleep(2)
+
+
 def requete(methode, params=None, delai=120):
     with open(C['jeton_filmcraft']) as f:
         jeton = f.read().strip()
-    with socket.create_connection(('127.0.0.1', C['port_filmcraft']), timeout=delai) as s:
+    with _connexion(delai) as s:
         msg = {'id': 1, 'token': jeton, 'method': methode}
         if params is not None:
             msg['params'] = params

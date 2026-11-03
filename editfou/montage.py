@@ -135,8 +135,10 @@ def _sous_titres(s, d, sb, plein):
 
     vus = []
     for o, x, y, *_ in d['OUV']:
-        vus += [(corrige(w), o + w['debut'] - x, o + w['fin'] - x, w['debut']) for w in d['tous']
-                if x <= w['debut'] < y - 0.05]
+        for w in d['tous']:
+            txt = corrige(w)
+            if x <= w['debut'] < y - 0.05 and txt and txt.strip('?!.,…'):
+                vus.append((txt, o + w['debut'] - x, o + w['fin'] - x, w['debut']))
     for w in d['mots']:
         txt = corrige(w)
         if txt and txt.strip('?!.,…'):

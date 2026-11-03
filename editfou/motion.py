@@ -39,7 +39,7 @@ class Scene:
         self.W, self.H, self.duree = W, H, duree
         self.occupe = [[] for _ in range(pistes)]
         self.occupe_audio = [[] for _ in range(audio)]
-        self.piste_de, self.debut, self.items = {}, {}, {}
+        self.piste_de, self.debut, self.fin, self.items = {}, {}, {}, {}
         self.sons = catalogue()
         self.manquants = set()
 
@@ -69,7 +69,7 @@ class Scene:
             k = self.piste(i0, i1, self.piste_de[dessus] + 1 if dessus else 1)
         p = dict(params, seconds=(i1 - i0) / FPS, time=i0 * F, track=k)
         c = cmd(commande, p)['clip']
-        self.piste_de[c], self.debut[c] = k, i0
+        self.piste_de[c], self.debut[c], self.fin[c] = k, i0, i1
         return c
 
     # ------------------------------------------------------------------ propriétés et images clés
@@ -77,7 +77,9 @@ class Scene:
         cmd('graphics.set', {'clip': c, 'layer': calque, 'props': props})
 
     def cles(self, c, cles, lisse=True, maintien=False):
-        """cles : [(t, {propriété: valeur})]. `maintien` : valeurs tenues jusqu'à la clé suivante."""
+        """cles : [(t, {propriété: valeur})]. `maintien` : valeurs tenues jusqu'à la clé suivante.
+        Les clés hors du clip (insert plus court que son animation) sont ignorées : FilmCraft les refuse."""
+        cles = [(t, props) for t, props in cles if self.debut[c] <= im(t) < self.fin[c]]
         for t, props in cles:
             cmd('graphics.set', {'clip': c, 'layer': 0, 'props': props, 'time': im(t) * F, 'keyframe': True})
         vus = set()
@@ -95,6 +97,8 @@ class Scene:
     def opacite(self, c, cles):
         """Images clés d'opacité du clip (effet Opacité, temps du montage)."""
         for t, v in cles:
+            if c in self.fin and not self.debut[c] <= im(t) < self.fin[c]:
+                continue
             cmd('effects.setParam', {'clip': c, 'effect': 'opacity', 'param': 'opacity', 'value': v,
                                      'keyframe': True, 'time': im(t) * F})
 
@@ -197,6 +201,8 @@ class Scene:
         cmd('effects.apply', {'clips': [c], 'effect': 'linear_wipe_legacy'})
         cmd('effects.setParam', {'clip': c, 'effect': 'linear_wipe_legacy', 'param': 'angle', 'value': angle})
         for t, visible in cles:
+            if c in self.fin and not self.debut[c] <= im(t) < self.fin[c]:
+                continue
             cmd('effects.setParam', {'clip': c, 'effect': 'linear_wipe_legacy', 'param': 'completion',
                                      'value': 100 - visible, 'keyframe': True, 'time': im(t) * F})
 
@@ -243,7 +249,7 @@ class Scene:
         if fondus:
             for tt, v in fondus:
                 cmd('effects.setParam', {'clip': clip, 'effect': 'volume', 'param': 'level', 'value': v,
-                                         'keyframe': True, 'time': im(tt) * F})
+                                         'keyframe': True, 'time': min(max(im(tt), i0), i1 - 1) * F})
         elif niveau:
             cmd('effects.setParam', {'clip': clip, 'effect': 'volume', 'param': 'level', 'value': niveau})
         return clip
